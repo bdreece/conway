@@ -1,8 +1,11 @@
 #include <iostream>
 
-#define CL_TARGET_OPENCL_VERSION 300
-#include <CL/opencl.h>
+#include "kernel.hpp"
+#include "renderer.hpp"
 
-#include <SDL2/SDL.h>
+int main() { 
+  Kernel *kernel = Kernel::instance();
+  Renderer *renderer = Renderer::instance();
 
-int main() { return 0; }
+  return 0;
+}
