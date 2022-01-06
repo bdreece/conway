@@ -6,15 +6,23 @@
  * @date        01/05/2022
  */
 
+#include <memory>
+#include <vector>
+
 #include "SDL2/SDL.h"
 
-class Renderer {
-protected:
-  Renderer();
-  ~Renderer();
-  void init();
+#include "kernel.hpp"
 
+class Renderer {
 public:
-  static Renderer *instance();
-  void render();
+  Renderer(int width, int height, int m, int n, bool fullscreen);
+  ~Renderer();
+  void startRenderLoop(long delay_ms);
+
+private:
+  void updateRectangles();
+
+  SDL_Window *window;
+  SDL_Renderer *renderer;
+  std::vector<std::vector<SDL_Rect>> grid; // x by y
 };

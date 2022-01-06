@@ -1,11 +1,11 @@
 #include <iostream>
 
-#include "kernel.hpp"
 #include "renderer.hpp"
 
-int main() { 
-  Kernel *kernel = Kernel::instance();
-  Renderer *renderer = Renderer::instance();
+int main() {
+  Renderer renderer(640, 480, 20, 20, false);
+
+  renderer.startRenderLoop(500);
 
   return 0;
 }
