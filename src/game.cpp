@@ -21,31 +21,30 @@ Game::Game(const std::string &kernelSourcePath, const int m, const int n)
   std::vector<cl_context_properties> contextProperties;
 
   // Get OpenCL platforms
-  ASSERT(cl::Platform::get(&platforms) == CL_SUCCESS);
+  err = cl::Platform::get(&platforms);
+  ASSERT(err == CL_SUCCESS, err);
 
   // Acquire context
   context = cl::Context(CL_DEVICE_TYPE_ALL, NULL, NULL, NULL, &err);
-  ASSERT(err == CL_SUCCESS);
+  ASSERT(err == CL_SUCCESS, err);
 
   // Get context properties
   contextProperties = context.getInfo<CL_CONTEXT_PROPERTIES>();
-  ASSERT(contextProperties.size() != 0);
+  ASSERT(contextProperties.size() != 0, 0);
 
   // Get context devices
   devices = context.getInfo<CL_CONTEXT_DEVICES>();
-  ASSERT(devices.size() != 0);
+  ASSERT(devices.size() != 0, 0);
 
   // Select the GPU
-  for (int i = 0; i < platforms.size(); i++) {
-    for (int j = 0; j < devices.size(); j++) {
-      if (devices[j].getInfo<CL_DEVICE_TYPE>() == 4)
-        id = j;
-    }
+  for (int i = 0; i < devices.size(); i++) {
+    if (devices[i].getInfo<CL_DEVICE_TYPE>() == CL_DEVICE_TYPE_GPU)
+      id = i;
   }
 
   // Prepare a command queue
   queue = cl::CommandQueue(context, devices[id], 0, &err);
-  ASSERT(err == CL_SUCCESS);
+  ASSERT(err == CL_SUCCESS, err);
 
   // Prepare input and output buffers
   inputCells =
@@ -93,13 +92,17 @@ void Game::processCells(std::vector<unsigned char> &cells) {
 
 void Game::createKernel(const std::string &kernelSourcePath,
                         const std::vector<cl::Device> &devices) {
+  cl_int err;
   cl::Program::Sources obj;
   cl::Program program;
-  std::ifstream fs(kernelSourcePath.c_str());
-  std::string kernelSource = std::string(std::istreambuf_iterator<char>(fs),
-                                         std::istreambuf_iterator<char>());
+  std::string kernelSource(
+#include "conway.cl"
+  );
 
-  program = cl::Program(context, kernelSource);
+  program = cl::Program(context, kernelSource, false, &err);
+  ASSERT(err == CL_SUCCESS, err);
+
   program.build(devices);
-  kernel = cl::Kernel(program, "conway");
+  kernel = cl::Kernel(program, "process", &err);
+  ASSERT(err == CL_SUCCESS, err);
 }

@@ -9,8 +9,8 @@
 #include <errno.h>
 #include <error.h>
 
-#define ASSERT(x)                                                              \
+#define ASSERT(x, y)                                                           \
   do {                                                                         \
     if (!(x))                                                                  \
-      error_at_line(1, errno, __FILE__, __LINE__, "(%s):", #x);                \
+      error_at_line(1, errno, __FILE__, __LINE__, "(%s): %d", #x, y);          \
   } while (0)

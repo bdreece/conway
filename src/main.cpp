@@ -17,12 +17,13 @@
 #include "util.hpp"
 
 int main(int argc, char **argv) {
-  if (argc < 6) {
+  if (argc < 7) {
     return 1;
   }
 
   bool isOpen = true;
-  int w, h, m, n, seed;
+  int w, h, m, n, seed, err;
+  long delay;
   std::vector<unsigned char> cells;
 
   w = std::stoi(argv[1]);
@@ -30,12 +31,14 @@ int main(int argc, char **argv) {
   m = std::stoi(argv[3]);
   n = std::stoi(argv[4]);
   seed = std::stoi(argv[5]);
+  delay = std::stol(argv[6]);
 
   // Initialize SDL
-  ASSERT(SDL_Init(SDL_INIT_VIDEO) <= 0);
+  err = SDL_Init(SDL_INIT_VIDEO);
+  ASSERT(err <= 0, err);
   SDL_Window *window = SDL_CreateWindow("conway", SDL_WINDOWPOS_CENTERED,
                                         SDL_WINDOWPOS_CENTERED, w, h, 0);
-  ASSERT(window);
+  ASSERT(window, 0);
 
   // Initialize grid and OpenCL kernel
   Grid grid(window, w, h, m, n);
@@ -52,8 +55,10 @@ int main(int argc, char **argv) {
   while (isOpen) {
     SDL_Event event;
     if (SDL_PollEvent(&event)) {
-      if (event.type == SDL_QUIT)
+      if (event.type == SDL_QUIT) {
         isOpen = false;
+        break;
+      }
     }
 
     // Clear grid
@@ -63,7 +68,7 @@ int main(int argc, char **argv) {
     int k = 0;
     for (int i = 0; i < m; i++) {
       for (int j = 0; j < n; j++) {
-        grid.updateCell(i, j, (cells[k++] == 0) ? DEAD : ALIVE);
+        grid.updateCell(i, j, (cells[k++] == 1) ? ALIVE : DEAD);
       }
     }
 
@@ -72,7 +77,7 @@ int main(int argc, char **argv) {
 
     // Advance game
     game.processCells(cells);
-    SDL_Delay(500);
+    SDL_Delay(delay);
   }
 
   SDL_DestroyWindow(window);
