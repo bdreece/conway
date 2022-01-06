@@ -37,7 +37,7 @@ Grid::~Grid() {
 void Grid::clear() { SDL_RenderClear(renderer); }
 
 void Grid::updateCell(int x, int y, Cell status) {
-  SDL_SetRenderDrawColor(renderer, status, status, status, 0);
+  SDL_SetRenderDrawColor(renderer, status, status, status, 255);
   SDL_RenderFillRect(renderer, cells[x][y]);
 }
 

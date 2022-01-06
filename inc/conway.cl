@@ -66,10 +66,14 @@ __kernel void conway(__global const uchar *inputCells, __global const int *m, __
   if (inputCells[i] == 1) {
     if (neighbors < 2 || neighbors > 3) {
       outputCells[i] = 0;
+    } else {
+      outputCells[i] = 1;  
     }
   } else {
     if (neighbors == 3) {
       outputCells[i] = 1;
+    } else {
+      outputCells[i] = 0;
     }
   }
 }

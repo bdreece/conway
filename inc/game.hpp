@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#define CL_HPP_TARGET_OPENCL_VERSION 300
 #include "CL/opencl.hpp"
 
 class Game {
@@ -27,5 +28,6 @@ private:
   cl::Event event;
   cl::Kernel kernel;
   cl::Buffer inputCells;
+  cl::Buffer _m, _n;
   cl::Buffer outputCells;
 };

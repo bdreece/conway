@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  bool isOpen = true;
   int w, h, m, n, seed;
   std::vector<unsigned char> cells;
 
@@ -38,7 +39,7 @@ int main(int argc, char **argv) {
 
   // Initialize grid and OpenCL kernel
   Grid grid(window, w, h, m, n);
-  Game game("conway.cl", m, n);
+  Game game("../../inc/conway.cl", m, n);
 
   // Initialize cells per random seed
   cells.reserve(m * n);
@@ -48,15 +49,21 @@ int main(int argc, char **argv) {
   }
 
   // Game loop
-  while (true) {
+  while (isOpen) {
+    SDL_Event event;
+    if (SDL_PollEvent(&event)) {
+      if (event.type == SDL_QUIT)
+        isOpen = false;
+    }
+
     // Clear grid
     grid.clear();
 
     // Update grid with cells
-    auto iter = std::begin(cells);
+    int k = 0;
     for (int i = 0; i < m; i++) {
       for (int j = 0; j < n; j++) {
-        grid.updateCell(i, j, *iter == 1 ? ALIVE : DEAD);
+        grid.updateCell(i, j, (cells[k++] == 0) ? DEAD : ALIVE);
       }
     }
 
@@ -65,7 +72,6 @@ int main(int argc, char **argv) {
 
     // Advance game
     game.processCells(cells);
-
     SDL_Delay(500);
   }
 

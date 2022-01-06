@@ -50,7 +50,8 @@ Game::Game(const std::string &kernelSourcePath, const int m, const int n)
   // Prepare input and output buffers
   inputCells =
       cl::Buffer(context, CL_MEM_READ_ONLY, m * n * sizeof(unsigned char));
-
+  _m = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(int));
+  _n = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(int));
   outputCells =
       cl::Buffer(context, CL_MEM_WRITE_ONLY, m * n * sizeof(unsigned char));
 
@@ -63,15 +64,29 @@ Game::~Game() {
 }
 
 void Game::processCells(std::vector<unsigned char> &cells) {
+  // Write buffer objects
   queue.enqueueWriteBuffer(inputCells, CL_TRUE, 0,
                            m * n * sizeof(unsigned char), cells.data(), NULL,
                            &event);
   event.wait();
 
-  queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(cells.size()),
+  queue.enqueueWriteBuffer(_m, CL_TRUE, 0, sizeof(int), &m, NULL, &event);
+  event.wait();
+
+  queue.enqueueWriteBuffer(_n, CL_TRUE, 0, sizeof(int), &n, NULL, &event);
+  event.wait();
+
+  kernel.setArg(0, inputCells);
+  kernel.setArg(1, _m);
+  kernel.setArg(2, _n);
+  kernel.setArg(3, outputCells);
+
+  // Run kernel
+  queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(m * n),
                              cl::NDRange(1), NULL, &event);
   event.wait();
 
+  // Read output buffer
   queue.enqueueReadBuffer(outputCells, CL_TRUE, 0,
                           m * n * sizeof(unsigned char), cells.data());
 }
