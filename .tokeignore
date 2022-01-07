@@ -1,0 +1,4 @@
+CMakeLists.txt
+src/CMakeLists.txt
+README.md
+.git/*
