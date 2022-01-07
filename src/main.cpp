@@ -22,16 +22,17 @@ int main(int argc, char **argv) {
   }
 
   bool isOpen = true;
-  int w, h, m, n, seed, err;
-  long delay;
+  int w, h, m, n, err;
+  unsigned int seed;
+  unsigned long delay;
   std::vector<unsigned char> cells;
 
   w = std::stoi(argv[1]);
   h = std::stoi(argv[2]);
-  m = std::stoi(argv[3]);
-  n = std::stoi(argv[4]);
-  seed = std::stoi(argv[5]);
-  delay = std::stol(argv[6]);
+  n = std::stoi(argv[3]);
+  m = std::stoi(argv[4]);
+  seed = std::stoul(argv[5]);
+  delay = std::stoul(argv[6]);
 
   // Initialize SDL
   err = SDL_Init(SDL_INIT_VIDEO);

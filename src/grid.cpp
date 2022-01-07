@@ -14,10 +14,10 @@ Grid::Grid(SDL_Window *window, int w, int h, int m, int n)
 
   cells.reserve(n);
 
-  for (int i = 0; i < cells.capacity(); i++) {
+  for (int i = 0; i < n; i++) {
     cells.push_back(std::vector<SDL_Rect *>());
     cells[i].reserve(m);
-    for (int j = 0; j < cells[i].capacity(); j++) {
+    for (int j = 0; j < m; j++) {
       cells[i].push_back(new SDL_Rect{(int)(i * (w / m)), (int)(j * (h / n)),
                                       (int)(w / m), (int)(h / n)});
     }
