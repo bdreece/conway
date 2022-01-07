@@ -66,8 +66,8 @@ int main(int argc, char **argv) {
 
     // Update grid with cells
     int k = 0;
-    for (int i = 0; i < m; i++) {
-      for (int j = 0; j < n; j++) {
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < m; j++) {
         grid.updateCell(i, j, (cells[k++] == 1) ? ALIVE : DEAD);
       }
     }

@@ -12,12 +12,12 @@ Grid::Grid(SDL_Window *window, int w, int h, int m, int n)
     : w(w), h(h), m(m), n(n) {
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-  cells.reserve(m);
+  cells.reserve(n);
 
-  for (int i = 0; i < m; i++) {
+  for (int i = 0; i < cells.capacity(); i++) {
     cells.push_back(std::vector<SDL_Rect *>());
-    cells[i].reserve(n);
-    for (int j = 0; j < n; j++) {
+    cells[i].reserve(m);
+    for (int j = 0; j < cells[i].capacity(); j++) {
       cells[i].push_back(new SDL_Rect{(int)(i * (w / m)), (int)(j * (h / n)),
                                       (int)(w / m), (int)(h / n)});
     }
@@ -25,8 +25,8 @@ Grid::Grid(SDL_Window *window, int w, int h, int m, int n)
 }
 
 Grid::~Grid() {
-  for (int i = 0; i < m; i++) {
-    for (int j = 0; j < n; j++) {
+  for (int i = 0; i < cells.size(); i++) {
+    for (int j = 0; j < cells[i].size(); j++) {
       delete cells[i][j];
     }
   }
@@ -36,9 +36,10 @@ Grid::~Grid() {
 
 void Grid::clear() { SDL_RenderClear(renderer); }
 
-void Grid::updateCell(int x, int y, Cell status) {
-  SDL_SetRenderDrawColor(renderer, status, status, status, 255);
-  SDL_RenderFillRect(renderer, cells[x][y]);
+void Grid::updateCell(int row, int column, Cell status) {
+  SDL_SetRenderDrawColor(renderer, (unsigned char)status, (unsigned char)status,
+                         (unsigned char)status, SDL_ALPHA_OPAQUE);
+  SDL_RenderFillRect(renderer, cells[row][column]);
 }
 
 void Grid::flush() { SDL_RenderPresent(renderer); }

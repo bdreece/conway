@@ -6,7 +6,7 @@ R"(int north(int p, int m, int n) {
 }
 
 int east(int p, int m, int n) {
-  if (p + 1 % m == 0) {
+  if ((p + 1) % m == 0) {
     return p + 1 - m;
   }
   return p + 1;
@@ -20,7 +20,7 @@ int south(int p, int m, int n) {
 }
 
 int west(int p, int m, int n) {
-  if (p - 1 % m == m - 1) {
+  if ((p - 1) % m == m - 1) {
     return p - 1 + m;
   }
   return p - 1;
@@ -42,11 +42,9 @@ int southwest(int p, int m, int n) {
   return south(west(p, m, n), m, n);
 }
 
-__kernel void process(__global const uchar *inputCells, __global const int *m, __global const int *n, __global uchar *outputCells) {
+__kernel void process(__global const uchar *inputCells, int m, int n, __global uchar *outputCells) {
   int i = get_global_id(0);
-  int neighbors = inputCells[north(i, m, n)] + inputCells[east(i, m, n)] + inputCells[south(i, m, n)] + inputCells[west(i, m, n)]
-                + inputCells[northeast(i, m, n)] + inputCells[northwest(i, m, n)] + inputCells[southeast(i, m, n)]
-                + inputCells[southwest(i, m, n)];
+  int neighbors = inputCells[north(i, m, n)] + inputCells[east(i, m, n)] + inputCells[south(i, m, n)] + inputCells[west(i, m, n)] + inputCells[northeast(i, m, n)] + inputCells[northwest(i, m, n)] + inputCells[southeast(i, m, n)] + inputCells[southwest(i, m, n)];
 
   if (inputCells[i] == 1) {
     if (neighbors < 2 || neighbors > 3) {

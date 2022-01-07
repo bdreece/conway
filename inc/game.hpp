@@ -28,6 +28,5 @@ private:
   cl::Event event;
   cl::Kernel kernel;
   cl::Buffer inputCells;
-  cl::Buffer _m, _n;
   cl::Buffer outputCells;
 };
