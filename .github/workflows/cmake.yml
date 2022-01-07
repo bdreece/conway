@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: sudo apt install libsdl2 ocl-icd-opencl-dev neofetch
+        run: sudo apt install libsdl2-dev ocl-icd-opencl-dev neofetch
 
       - name: System fetch
         run: neofetch
