@@ -12,6 +12,7 @@
 #include <string>
 
 #include "SDL.h"
+
 #include "game.hpp"
 #include "grid.hpp"
 #include "util.hpp"
@@ -35,6 +36,14 @@ int main(int argc, char **argv) {
   cellSize = std::stoi(argv[2]);
   seed = std::stoul(argv[3]);
   delay = std::stoul(argv[4]);
+
+  if (winSize <= 1) {
+    std::cout << "Invalid WIN_SIZE" << std::endl;
+    return 1;
+  } else if (cellSize > winSize) {
+    std::cout << "Invalid CELL_SIZE" << std::endl;
+    return 1;
+  }
 
   // Initialize SDL
   err = SDL_Init(SDL_INIT_VIDEO);

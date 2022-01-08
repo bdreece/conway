@@ -1,5 +1,6 @@
 find_package(OpenCL REQUIRED)
 find_package(SDL2 REQUIRED)
+
 include_directories(${SDL2_INCLUDE_DIRS})
 
 add_executable(conway main.cpp grid.cpp game.cpp)
