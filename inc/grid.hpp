@@ -14,15 +14,17 @@ enum Cell : unsigned char { DEAD = 0, ALIVE = 255 };
 
 class Grid {
 public:
-  Grid(SDL_Window *window, int w, int h, int m, int n);
+  Grid(SDL_Window *window, int winSize, int cellSize);
   ~Grid();
 
   void clear();
-  void updateCell(int x, int y, Cell status);
+  void updateCell(int i, Cell status);
   void flush();
+  int getN() const;
+  int getTotal() const;
 
 private:
   SDL_Renderer *renderer;
-  std::vector<std::vector<SDL_Rect *>> cells;
-  int w, h, m, n;
+  std::vector<SDL_Rect *> cells;
+  int winSize, cellSize, n;
 };

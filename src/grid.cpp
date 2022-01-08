@@ -8,27 +8,26 @@
 
 #include "grid.hpp"
 
-Grid::Grid(SDL_Window *window, int w, int h, int m, int n)
-    : w(w), h(h), m(m), n(n) {
+Grid::Grid(SDL_Window *window, int winSize, int cellSize)
+    : winSize(winSize), cellSize(cellSize) {
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-  cells.reserve(n);
+  for (n = winSize / cellSize; n % cellSize != 0; n--) {
+  }
+
+  cells.reserve(n * n);
 
   for (int i = 0; i < n; i++) {
-    cells.push_back(std::vector<SDL_Rect *>());
-    cells[i].reserve(m);
-    for (int j = 0; j < m; j++) {
-      cells[i].push_back(new SDL_Rect{(int)(i * (w / m)), (int)(j * (h / n)),
-                                      (int)(w / m), (int)(h / n)});
+    for (int j = 0; j < n; j++) {
+      cells.push_back(
+          new SDL_Rect{i * cellSize, j * cellSize, cellSize, cellSize});
     }
   }
 }
 
 Grid::~Grid() {
   for (int i = 0; i < cells.size(); i++) {
-    for (int j = 0; j < cells[i].size(); j++) {
-      delete cells[i][j];
-    }
+    delete cells[i];
   }
 
   SDL_DestroyRenderer(renderer);
@@ -36,10 +35,14 @@ Grid::~Grid() {
 
 void Grid::clear() { SDL_RenderClear(renderer); }
 
-void Grid::updateCell(int row, int column, Cell status) {
+void Grid::updateCell(int i, Cell status) {
   SDL_SetRenderDrawColor(renderer, (unsigned char)status, (unsigned char)status,
                          (unsigned char)status, SDL_ALPHA_OPAQUE);
-  SDL_RenderFillRect(renderer, cells[row][column]);
+  SDL_RenderFillRect(renderer, cells[i]);
 }
 
 void Grid::flush() { SDL_RenderPresent(renderer); }
+
+int Grid::getN() const { return n; }
+
+int Grid::getTotal() const { return n * n; }

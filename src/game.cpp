@@ -12,8 +12,7 @@
 #include "game.hpp"
 #include "util.hpp"
 
-Game::Game(const std::string &kernelSourcePath, const int m, const int n)
-    : m(m), n(n) {
+Game::Game(const int cols, const int rows) : cols(cols), rows(rows) {
   cl_int err;
   cl_device_type id;
   std::vector<cl::Device> devices;
@@ -47,12 +46,12 @@ Game::Game(const std::string &kernelSourcePath, const int m, const int n)
   ASSERT(err == CL_SUCCESS, err);
 
   // Prepare input and output buffers
-  inputCells =
-      cl::Buffer(context, CL_MEM_READ_ONLY, m * n * sizeof(unsigned char));
-  outputCells =
-      cl::Buffer(context, CL_MEM_WRITE_ONLY, m * n * sizeof(unsigned char));
+  inputCells = cl::Buffer(context, CL_MEM_READ_ONLY,
+                          rows * cols * sizeof(unsigned char));
+  outputCells = cl::Buffer(context, CL_MEM_WRITE_ONLY,
+                           rows * cols * sizeof(unsigned char));
 
-  createKernel(kernelSourcePath, devices);
+  createKernel(devices);
 }
 
 Game::~Game() {
@@ -63,27 +62,26 @@ Game::~Game() {
 void Game::processCells(std::vector<unsigned char> &cells) {
   // Write buffer objects
   queue.enqueueWriteBuffer(inputCells, CL_TRUE, 0,
-                           m * n * sizeof(unsigned char), cells.data(), NULL,
-                           &event);
+                           rows * cols * sizeof(unsigned char), cells.data(),
+                           NULL, &event);
   event.wait();
 
   kernel.setArg(0, inputCells);
-  kernel.setArg(1, m);
-  kernel.setArg(2, n);
+  kernel.setArg(1, cols);
+  kernel.setArg(2, rows);
   kernel.setArg(3, outputCells);
 
   // Run kernel
-  queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(m * n),
+  queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(rows * cols),
                              cl::NullRange, NULL, &event);
   event.wait();
 
   // Read output buffer
   queue.enqueueReadBuffer(outputCells, CL_TRUE, 0,
-                          m * n * sizeof(unsigned char), cells.data());
+                          rows * cols * sizeof(unsigned char), cells.data());
 }
 
-void Game::createKernel(const std::string &kernelSourcePath,
-                        const std::vector<cl::Device> &devices) {
+void Game::createKernel(const std::vector<cl::Device> &devices) {
   cl_int err;
   cl::Program::Sources obj;
   cl::Program program;

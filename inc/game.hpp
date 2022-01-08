@@ -13,16 +13,15 @@
 
 class Game {
 public:
-  Game(const std::string &kernelSourcePath, const int m, const int n);
+  Game(const int m, const int n);
   ~Game();
 
   void processCells(std::vector<unsigned char> &cells);
 
 private:
-  void createKernel(const std::string &kernelSourcePath,
-                    const std::vector<cl::Device> &devices);
+  void createKernel(const std::vector<cl::Device> &devices);
 
-  int m, n;
+  int cols, rows;
   cl::Context context;
   cl::CommandQueue queue;
   cl::Event event;

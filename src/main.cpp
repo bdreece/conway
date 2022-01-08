@@ -16,39 +16,45 @@
 #include "grid.hpp"
 #include "util.hpp"
 
+const char *const helpMessage =
+    "Usage: ./conway WIN_SIZE CELL_SIZE SEED DELAY\n";
+
 int main(int argc, char **argv) {
-  if (argc < 7) {
+  if (argc < 5) {
+    std::cout << helpMessage << std::endl;
     return 1;
   }
 
   bool isOpen = true;
-  int w, h, m, n, err;
+  int winSize, cellSize, n, total, err;
   unsigned int seed;
   unsigned long delay;
   std::vector<unsigned char> cells;
 
-  w = std::stoi(argv[1]);
-  h = std::stoi(argv[2]);
-  n = std::stoi(argv[3]);
-  m = std::stoi(argv[4]);
-  seed = std::stoul(argv[5]);
-  delay = std::stoul(argv[6]);
+  winSize = std::stoi(argv[1]);
+  cellSize = std::stoi(argv[2]);
+  seed = std::stoul(argv[3]);
+  delay = std::stoul(argv[4]);
 
   // Initialize SDL
   err = SDL_Init(SDL_INIT_VIDEO);
   ASSERT(err <= 0, err);
-  SDL_Window *window = SDL_CreateWindow("conway", SDL_WINDOWPOS_CENTERED,
-                                        SDL_WINDOWPOS_CENTERED, w, h, 0);
+  SDL_Window *window =
+      SDL_CreateWindow("conway", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                       winSize, winSize, 0);
   ASSERT(window, 0);
 
   // Initialize grid and OpenCL kernel
-  Grid grid(window, w, h, m, n);
-  Game game("../../inc/conway.cl", m, n);
+  Grid grid(window, winSize, cellSize);
+  total = grid.getTotal();
+  n = grid.getN();
+
+  Game game(n, n);
 
   // Initialize cells per random seed
-  cells.reserve(m * n);
+  cells.reserve(total);
   srand(seed);
-  for (int i = 0; i < (m * n); i++) {
+  for (int i = 0; i < total; i++) {
     cells[i] = rand() % 2 ? 0 : 1;
   }
 
@@ -66,11 +72,8 @@ int main(int argc, char **argv) {
     grid.clear();
 
     // Update grid with cells
-    int k = 0;
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < m; j++) {
-        grid.updateCell(i, j, (cells[k++] == 1) ? ALIVE : DEAD);
-      }
+    for (int i = 0; i < total; i++) {
+      grid.updateCell(i, (cells[i] == 1) ? ALIVE : DEAD);
     }
 
     // Flush grid

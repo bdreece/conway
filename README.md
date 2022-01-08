@@ -44,12 +44,18 @@ After compilation has finished, you should find an executable at `build/src/conw
 
 `conway` expects a number of command line arguments, as described below:
 
-`./conway <width_px> <height_px> <nrows> <ncols> <seed> <delay>`
+`./conway WIN_SIZE CELL_SIZE SEED DELAY`
 
-The `<seed>` value can be any valid unsigned integer, and the `<delay>` value can be any valid unsigned long integer representing milliseconds.
+The `WIN_SIZE` parameter refers to the width/height of the window. Windows will be square. This must be an unsigned integer greater than 1.
+
+The `CELL_SIZE` parameter refers to the width/height of each cell. Cells will be square. This must be an unsigned integer less than `WIN_SIZE`.
+
+The `SEED` parameter refers to the RNG seed used for generating initial conditions. This can be any valid unsigned integer.
+
+The `DELAY` parameter refers to the delay (in milliseconds) between frames. This can be any valid unsigned long integer.
 
 ---
 
 ## Future Plans
 
-I plan to flesh out the CLI for this program a little bit in the coming weeks, as well as fix the weird edge flashing glitches that appear on the window.
+I plan to flesh out the CLI for this program a little bit in the coming weeks, and I'll work on other issues as they arise.
