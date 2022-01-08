@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 
     // Update grid with cells
     for (int i = 0; i < total; i++) {
-      grid.updateCell(i, (cells[i] == 1) ? ALIVE : DEAD);
+      grid.updateCell(i, cells[i] == 1 ? ALIVE : DEAD);
     }
 
     // Flush grid
