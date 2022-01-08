@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
   if (winSize <= 1) {
     std::cout << "Invalid WIN_SIZE" << std::endl;
     return 1;
-  } else if (cellSize > winSize) {
+  } else if (cellSize == 0 || cellSize > winSize) {
     std::cout << "Invalid CELL_SIZE" << std::endl;
     return 1;
   }

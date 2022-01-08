@@ -48,7 +48,7 @@ After compilation has finished, you should find an executable at `build/src/conw
 
 The `WIN_SIZE` parameter refers to the width/height of the window. Windows will be square. This must be an unsigned integer greater than 1.
 
-The `CELL_SIZE` parameter refers to the width/height of each cell. Cells will be square. This must be an unsigned integer less than `WIN_SIZE`.
+The `CELL_SIZE` parameter refers to the width/height of each cell. Cells will be square. This must be an unsigned integer greater than 0 and less than `WIN_SIZE`.
 
 The `SEED` parameter refers to the RNG seed used for generating initial conditions. This can be any valid unsigned integer.
 
