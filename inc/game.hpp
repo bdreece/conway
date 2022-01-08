@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#define CL_HPP_TARGET_OPENCL_VERSION 300
+#define CL_HPP_TARGET_OPENCL_VERSION 220
 #include "CL/opencl.hpp"
 
 class Game {

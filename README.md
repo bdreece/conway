@@ -21,7 +21,7 @@ An implementation of Conway's Game of Life, written in C++ with SDL2 and OpenCL
 In order to run the game of life simulation, you must have the following packages installed on your system:
 
 - SDL 2.0
-- OpenCL 3.0 (with C++ wrapper).
+- OpenCL 2.2.0 (with C++ wrapper).
 - CMake
 - A build system of your choice (e.g. Ninja, GNU Make, etc.)
 
