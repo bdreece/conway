@@ -29,7 +29,7 @@ In order to run the game of life simulation, you must have the following package
 
 This program is built using CMake. To generate Ninja build files for the project, use the following command:
 
-```console
+```bash
 $ git clone https://github.com/bdreece/conway && cd conway
 $ mkdir -p build && cd build
 $ cmake -G Ninja ..
