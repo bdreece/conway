@@ -39,3 +39,8 @@ build/
 
 # prog build script
 prog.yml
+
+# perf samples
+perf.data
+perf.data.old
+perf.svg
