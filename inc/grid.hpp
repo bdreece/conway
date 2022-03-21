@@ -6,25 +6,27 @@
  * @date        01/05/2022
  */
 
+#include <array>
 #include <vector>
 
-#include "SDL.h"
+namespace conway {
+    struct Cell {
+        unsigned int indices[6];
+    };
 
-enum Cell : unsigned char { DEAD = 0, ALIVE = 255 };
+    class Grid {
+      public:
+        Grid(int rows, int cols);
 
-class Grid {
-public:
-  Grid(SDL_Window *window, int winSize, int cellSize);
-  ~Grid();
+        void updateCells(const std::vector<unsigned char> &cells);
+        const unsigned int &deadCells() const;
+        const std::size_t numDeadCells() const;
+        const unsigned int &liveCells() const;
+        const std::size_t numLiveCells() const;
 
-  void clear();
-  void updateCell(int i, Cell status);
-  void flush();
-  int getN() const;
-  int getTotal() const;
-
-private:
-  SDL_Renderer *renderer;
-  std::vector<SDL_Rect *> cells;
-  int winSize, cellSize, n;
-};
+      private:
+        std::vector<Cell> cells;
+        std::size_t live, dead;
+        unsigned int buffers[3];
+    };
+} // namespace conway

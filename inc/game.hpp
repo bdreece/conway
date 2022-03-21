@@ -1,31 +1,26 @@
-/**
- * @file        game.hpp
- * @brief       Game of Life game class
- * @author      Brian Reece
- * @version     0.1.0
- * @date        01/06/2022
- */
+#include <memory>
 
-#include <vector>
+#include <GLFW/glfw3.h>
 
-#define CL_HPP_TARGET_OPENCL_VERSION 220
-#include "CL/opencl.hpp"
+#include "grid.hpp"
+#include "kernel.hpp"
+#include "shader.hpp"
 
-class Game {
-public:
-  Game(const int m, const int n);
-  ~Game();
+namespace conway {
+    class Game {
+        static std::unique_ptr<Game> instance;
 
-  void processCells(std::vector<unsigned char> &cells);
+      public:
+        static Game *getInstance();
+        void init(int rows, int cols, unsigned int seed, const Shader &shader);
+        void loop();
 
-private:
-  void createKernel(const std::vector<cl::Device> &devices);
+        GLFWwindow *window;
+        std::unique_ptr<Grid> grid;
+        std::unique_ptr<Kernel> game;
+        std::unique_ptr<Shader> shader;
+        std::vector<unsigned char> cells;
+        unsigned long delay;
+    };
 
-  int cols, rows;
-  cl::Context context;
-  cl::CommandQueue queue;
-  cl::Event event;
-  cl::Kernel kernel;
-  cl::Buffer inputCells;
-  cl::Buffer outputCells;
-};
+} // namespace conway

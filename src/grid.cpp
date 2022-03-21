@@ -6,43 +6,83 @@
  * @date        01/05/2022
  */
 
+#include <cstddef>
+#include <cstdlib>
+
+#include <GL/glew.h>
+#include <GL/gl.h>
+
 #include "grid.hpp"
 
-Grid::Grid(SDL_Window *window, int winSize, int cellSize)
-    : winSize(winSize), cellSize(cellSize) {
-  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+using namespace conway;
 
-  for (n = winSize / cellSize; n % cellSize != 0; n--) {
-  }
+Grid::Grid(int rows, int cols) {
+    // Generate GL buffers (1 vertex, 2 element)
+    glGenBuffers(3, buffers);
 
-  cells.reserve(n * n);
+    // We are storing the coordinates of the vertices only
+    {
+        std::vector<double> vertices;
+        vertices.reserve(2 * (rows + 1) * (cols + 1));
 
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
-      cells.push_back(
-          new SDL_Rect{i * cellSize, j * cellSize, cellSize, cellSize});
+        double offsets[2] = {
+            2.0f * (1.0f / rows),
+            2.0f * (1.0f / cols),
+        };
+
+        // Create static grid of vertices
+        for (auto i = 0; i <= cols; i++) {
+            for (auto j = 0; j <= rows; j++) {
+                vertices.push_back(offsets[0] * i);
+                vertices.push_back(offsets[1] * j);
+            }
+        }
+
+        // Put vertices in GL array buffer
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+        glBufferData(GL_ARRAY_BUFFER, 2 * (rows + 1) * (cols + 1),
+                     vertices.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
-  }
+
+    cells.reserve(rows * cols);
+    for (unsigned int i = 0; i < (6 * rows * cols); i += 6) {
+        cells.emplace_back(new Cell{
+            .indices = {i + 1, i + cols + 1, i, i + cols + 1, i + cols, i},
+        });
+    }
 }
 
-Grid::~Grid() {
-  for (int i = 0; i < cells.size(); i++) {
-    delete cells[i];
-  }
+void Grid::updateCells(const std::vector<unsigned char> &cells) {
+    std::vector<unsigned int> liveIndices, deadIndices;
+    live = dead = 0;
 
-  SDL_DestroyRenderer(renderer);
+    for (auto i = 0; i < cells.size(); i++) {
+        if (cells[i] == 255) {
+            for (const auto &index : this->cells[i].indices) {
+                liveIndices.push_back(index);
+            }
+            live++;
+        } else {
+            for (const auto &index : this->cells[i].indices) {
+                deadIndices.push_back(index);
+            }
+            dead++;
+        }
+    }
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, liveIndices.size(),
+                 liveIndices.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, deadIndices.size(),
+                 deadIndices.data(), GL_STATIC_DRAW);
 }
 
-void Grid::clear() { SDL_RenderClear(renderer); }
+const unsigned int &Grid::deadCells() const { return buffers[2]; }
 
-void Grid::updateCell(int i, Cell status) {
-  SDL_SetRenderDrawColor(renderer, (unsigned char)status, (unsigned char)status,
-                         (unsigned char)status, SDL_ALPHA_OPAQUE);
-  SDL_RenderFillRect(renderer, cells[i]);
-}
+const std::size_t Grid::numDeadCells() const { return dead; }
 
-void Grid::flush() { SDL_RenderPresent(renderer); }
+const std::size_t Grid::numLiveCells() const { return live; }
 
-int Grid::getN() const { return n; }
-
-int Grid::getTotal() const { return n * n; }
+const unsigned int &Grid::liveCells() const { return buffers[1]; }

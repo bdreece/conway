@@ -1,98 +1,46 @@
-/**
- * @file        game.cpp
- * @brief       Game of Life implementation
- * @author      Brian Reece
- * @version     0.1.0
- * @date        01/06/2022
- */
 
-#include <fstream>
-#include <sstream>
+#include <GL/glew.h>
+#include <GL/gl.h>
 
 #include "game.hpp"
-#include "util.hpp"
 
-Game::Game(const int cols, const int rows) : cols(cols), rows(rows) {
-  cl_int err;
-  cl_device_type id;
-  std::vector<cl::Device> devices;
-  std::vector<cl::Platform> platforms;
-  std::vector<cl_context_properties> contextProperties;
+using namespace conway;
 
-  // Get OpenCL platforms
-  err = cl::Platform::get(&platforms);
-  ASSERT(err == CL_SUCCESS, err);
+Game *Game::getInstance() {
+    if (!instance) {
+        instance = std::make_unique<Game>();
+    }
 
-  // Acquire context
-  context = cl::Context(CL_DEVICE_TYPE_ALL, NULL, NULL, NULL, &err);
-  ASSERT(err == CL_SUCCESS, err);
-
-  // Get context properties
-  contextProperties = context.getInfo<CL_CONTEXT_PROPERTIES>();
-  ASSERT(contextProperties.size() != 0, 0);
-
-  // Get context devices
-  devices = context.getInfo<CL_CONTEXT_DEVICES>();
-  ASSERT(devices.size() != 0, 0);
-
-  // Select the GPU
-  for (int i = 0; i < devices.size(); i++) {
-    if (devices[i].getInfo<CL_DEVICE_TYPE>() == CL_DEVICE_TYPE_GPU)
-      id = i;
-  }
-
-  // Prepare a command queue
-  queue = cl::CommandQueue(context, devices[id], 0, &err);
-  ASSERT(err == CL_SUCCESS, err);
-
-  // Prepare input and output buffers
-  inputCells = cl::Buffer(context, CL_MEM_READ_ONLY,
-                          rows * cols * sizeof(unsigned char));
-  outputCells = cl::Buffer(context, CL_MEM_WRITE_ONLY,
-                           rows * cols * sizeof(unsigned char));
-
-  createKernel(devices);
+    return instance.get();
 }
 
-Game::~Game() {
-  queue.finish();
-  queue.flush();
+void Game::init(int rows, int cols, unsigned int seed, const Shader &shader) {
+    // Initialize grid and OpenCL kernel
+    grid = std::make_unique<Grid>(rows, cols);
+    game = std::make_unique<Kernel>(rows, cols);
+    this->shader = std::make_unique<Shader>(shader);
+
+    // Initialize cells per random seed
+    cells.reserve(400 * 300);
+    srand(seed);
+    for (int i = 0; i < cells.capacity(); i++) {
+        cells[i] = rand() % 2 ? 0 : 255;
+    }
 }
+void Game::loop() {
+    grid->updateCells(cells);
 
-void Game::processCells(std::vector<unsigned char> &cells) {
-  // Write buffer objects
-  queue.enqueueWriteBuffer(inputCells, CL_TRUE, 0,
-                           rows * cols * sizeof(unsigned char), cells.data(),
-                           NULL, &event);
-  event.wait();
+    unsigned int liveCells = grid->liveCells();
+    unsigned int deadCells = grid->deadCells();
 
-  kernel.setArg(0, inputCells);
-  kernel.setArg(1, cols);
-  kernel.setArg(2, rows);
-  kernel.setArg(3, outputCells);
+    glUseProgram(shader->get());
+    glClearColor(0, 0, 0, 0);
 
-  // Run kernel
-  queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(rows * cols),
-                             cl::NullRange, NULL, &event);
-  event.wait();
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, liveCells);
+    glUniform1i(0, 255);
+    glDrawElements(GL_TRIANGLES, grid->numLiveCells(), GL_UNSIGNED_INT, NULL);
 
-  // Read output buffer
-  queue.enqueueReadBuffer(outputCells, CL_TRUE, 0,
-                          rows * cols * sizeof(unsigned char), cells.data());
-}
-
-void Game::createKernel(const std::vector<cl::Device> &devices) {
-  cl_int err;
-  cl::Program::Sources obj;
-  cl::Program program;
-  std::string kernelSource(
-#include "conway.cl"
-  );
-
-  program = cl::Program(context, kernelSource, false, &err);
-  ASSERT(err == CL_SUCCESS, err);
-
-  program.build(devices);
-  kernel = cl::Kernel(program, "process", &err);
-  ASSERT(err == CL_SUCCESS, err);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, deadCells);
+    glUniform1i(0, 0);
+    glDrawElements(GL_TRIANGLES, grid->numDeadCells(), GL_UNSIGNED_INT, NULL);
 }

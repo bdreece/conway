@@ -9,91 +9,94 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <memory>
 #include <string>
 
-#include "SDL.h"
+#include <GLFW/glfw3.h>
+#include <GL/gl.h>
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "imgui.h"
 
 #include "game.hpp"
-#include "grid.hpp"
-#include "util.hpp"
+#include "shader.hpp"
 
 const char *const helpMessage =
     "Usage: ./conway WIN_SIZE CELL_SIZE SEED DELAY\n";
 
+static void glfw_error_callback(int error, const char *description) {
+    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
+
 int main(int argc, char **argv) {
-  if (argc < 5) {
-    std::cout << helpMessage << std::endl;
-    return 1;
-  }
+    // Setup window
+    glfwSetErrorCallback(glfw_error_callback);
+    if (!glfwInit())
+        return 1;
 
-  bool isOpen = true;
-  int winSize, cellSize, n, total, err;
-  unsigned int seed;
-  unsigned long delay;
-  std::vector<unsigned char> cells;
+        // Decide GL+GLSL versions
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+    // GL ES 2.0 + GLSL 100
+    const char *glsl_version = "#version 100";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+#elif defined(__APPLE__)
+    // GL 3.2 + GLSL 150
+    const char *glsl_version = "#version 150";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Required on Mac
+#else
+    // GL 3.0 + GLSL 130
+    const char *glsl_version = "#version 130";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+
+    // only glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // 3.0+ only
+#endif
 
-  winSize = std::stoi(argv[1]);
-  cellSize = std::stoi(argv[2]);
-  seed = std::stoul(argv[3]);
-  delay = std::stoul(argv[4]);
+    // Use a doublebuffer
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
-  if (winSize <= 1) {
-    std::cout << "Invalid WIN_SIZE" << std::endl;
-    return 1;
-  } else if (cellSize == 0 || cellSize > winSize) {
-    std::cout << "Invalid CELL_SIZE" << std::endl;
-    return 1;
-  }
+    // Make window resizable by user
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-  // Initialize SDL
-  err = SDL_Init(SDL_INIT_VIDEO);
-  ASSERT(err <= 0, err);
-  SDL_Window *window =
-      SDL_CreateWindow("conway", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       winSize, winSize, 0);
-  ASSERT(window, 0);
+    conway::Game *game = conway::Game::getInstance();
 
-  // Initialize grid and OpenCL kernel
-  Grid grid(window, winSize, cellSize);
-  total = grid.getTotal();
-  n = grid.getN();
+    // Create window with graphics context
+    game->window = glfwCreateWindow(800, 600, "conway", NULL, NULL);
+    if (game->window == NULL)
+        return 1;
+    glfwMakeContextCurrent(game->window);
+    glfwSwapInterval(1); // Enable vsync
 
-  Game game(n, n);
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
 
-  // Initialize cells per random seed
-  cells.reserve(total);
-  srand(seed);
-  for (int i = 0; i < total; i++) {
-    cells[i] = rand() % 2 ? 0 : 1;
-  }
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    // ImGui::StyleColorsClassic();
 
-  // Game loop
-  while (isOpen) {
-    SDL_Event event;
-    if (SDL_PollEvent(&event)) {
-      if (event.type == SDL_QUIT) {
-        isOpen = false;
-        break;
-      }
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(game->window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
+    game->init(400, 300, 69420, conway::Shader("", ""));
+
+    while (!glfwWindowShouldClose(game->window)) {
+        glfwPollEvents();
+
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // Something like this?
+        game->loop();
     }
-
-    // Clear grid
-    grid.clear();
-
-    // Update grid with cells
-    for (int i = 0; i < total; i++) {
-      grid.updateCell(i, cells[i] == 1 ? ALIVE : DEAD);
-    }
-
-    // Flush grid
-    grid.flush();
-
-    // Advance game
-    game.processCells(cells);
-    SDL_Delay(delay);
-  }
-
-  SDL_DestroyWindow(window);
-  SDL_Quit();
-  return 0;
 };
