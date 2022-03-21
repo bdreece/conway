@@ -101,6 +101,7 @@ int main(int argc, char **argv) {
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+        glClearColor(0, 0, 0, 0);
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();

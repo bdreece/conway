@@ -62,7 +62,6 @@ void Game::loop() {
         auto shader = currentShader.lock();
 
         glUseProgram(shader->getId());
-        glClearColor(0, 0, 0, 0);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, liveCells);
         glUniform4f(shader->getUniformLocation("color"), liveColor[0],
@@ -76,6 +75,8 @@ void Game::loop() {
         glDrawElements(GL_TRIANGLES, grid->numDeadCells(), GL_UNSIGNED_INT,
                        NULL);
     }
+
+    kernel->processCells(cells);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 }
 
