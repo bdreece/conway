@@ -19,15 +19,14 @@
 
 namespace conway {
     class Game {
-        Grid *grid;
-        Kernel *kernel;
+        std::unique_ptr<Grid> grid;
+        std::unique_ptr<Kernel> kernel;
         std::map<std::string, std::shared_ptr<Shader>> shaders;
         std::weak_ptr<Shader> currentShader;
         std::vector<unsigned char> cells;
 
       public:
         Game(int rows, int cols, unsigned int seed);
-        ~Game();
 
         void loop();
 

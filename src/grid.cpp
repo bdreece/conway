@@ -24,7 +24,7 @@ Grid::Grid(int rows, int cols) {
 
     // We are storing the coordinates of the vertices only
     {
-        std::vector<double> vertices;
+        std::vector<double> vertices{};
         vertices.reserve(2 * (rows + 1) * (cols + 1));
 
         double offsets[2] = {
@@ -55,15 +55,22 @@ Grid::Grid(int rows, int cols) {
 }
 
 void Grid::updateCells(const std::vector<unsigned char> &cells) {
-    std::vector<unsigned int> liveIndices, deadIndices;
+    std::vector<unsigned int> liveIndices{}, deadIndices{};
     live = dead = 0;
     {
-        std::vector<std::array<unsigned int, 6>> liveCells, deadCells;
+        std::vector<std::array<unsigned int, 6>> liveCells{}, deadCells{};
+        liveCells.reserve(
+            std::count_if(cells.cbegin(), cells.cend(),
+                          [](const auto &cell) { return cell > 0; }));
+        liveIndices.reserve(6 * liveCells.capacity());
+        deadCells.reserve(cells.size() - liveCells.capacity());
+        deadIndices.reserve(6 * deadCells.capacity());
+
         auto cellIter = cells.cbegin();
         std::partition_copy(
             this->cells.cbegin(), this->cells.cend(), liveCells.begin(),
             deadCells.begin(),
-            [&cellIter](const auto &val) { return *cellIter++; });
+            [&cellIter](const auto &val) { return *cellIter++ > 0; });
 
         for (const auto &cell : liveCells) {
             std::copy(cell.cbegin(), cell.cend(), liveIndices.end());

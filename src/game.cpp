@@ -21,8 +21,8 @@ using namespace conway;
 
 Game::Game(int rows, int cols, unsigned int seed) {
     // Initialize grid and OpenCL kernel
-    this->grid = new Grid(rows, cols);
-    this->kernel = new Kernel(rows, cols);
+    this->grid = std::make_unique<Grid>(rows, cols);
+    this->kernel = std::make_unique<Kernel>(rows, cols);
 
     // Initialize cells per random seed
     cells.reserve(rows * cols);
@@ -31,14 +31,9 @@ Game::Game(int rows, int cols, unsigned int seed) {
                   []() { return rand() % 2 ? 0 : 255; });
 }
 
-Game::~Game() {
-    delete grid;
-    delete kernel;
-}
-
 void Game::loadShader(const std::string &name, const std::string &vertPath,
                       const std::string &fragPath) {
-    std::stringstream vss, fss;
+    std::stringstream vss{}, fss{};
     std::ifstream vfs(vertPath), ffs(fragPath);
 
     {
@@ -91,7 +86,8 @@ void Game::setShader(const std::string &name) {
 }
 
 const std::vector<std::string> Game::getShaders() const {
-    std::vector<std::string> shaderNames;
+    std::vector<std::string> shaderNames{};
+    shaderNames.reserve(shaders.size());
     std::transform(shaders.begin(), shaders.end(), shaderNames.begin(),
                    [](const auto &pair) { return pair.first; });
     return shaderNames;

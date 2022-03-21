@@ -17,9 +17,9 @@ using namespace conway;
 Kernel::Kernel(const int rows, const int cols) : cols(cols), rows(rows) {
     cl_int err;
     cl_device_type id;
-    std::vector<cl::Device> devices;
-    std::vector<cl::Platform> platforms;
-    std::vector<cl_context_properties> contextProperties;
+    std::vector<cl::Device> devices{};
+    std::vector<cl::Platform> platforms{};
+    std::vector<cl_context_properties> contextProperties{};
 
     // Get OpenCL platforms
     err = cl::Platform::get(&platforms);
