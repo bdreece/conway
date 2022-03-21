@@ -10,10 +10,6 @@
 #include <vector>
 
 namespace conway {
-    struct Cell {
-        unsigned int indices[6];
-    };
-
     class Grid {
       public:
         Grid(int rows, int cols);
@@ -25,8 +21,8 @@ namespace conway {
         const std::size_t numLiveCells() const;
 
       private:
-        std::vector<Cell> cells;
+        std::vector<std::array<unsigned int, 6>> cells;
         std::size_t live, dead;
-        unsigned int buffers[3];
+        std::array<unsigned int, 3> buffers;
     };
 } // namespace conway

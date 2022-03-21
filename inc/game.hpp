@@ -1,4 +1,15 @@
+/**
+ *	@file		game.hpp
+ *	@brief		Game computation and render loop
+ *	@author		Brian Reece
+ *	@version	0.2.0
+ *	@date		03/21/2022
+ */
+
+#include <array>
+#include <map>
 #include <memory>
+#include <vector>
 
 #include <GLFW/glfw3.h>
 
@@ -8,19 +19,25 @@
 
 namespace conway {
     class Game {
-        static std::unique_ptr<Game> instance;
+        Grid *grid;
+        Kernel *kernel;
+        std::map<std::string, std::shared_ptr<Shader>> shaders;
+        std::weak_ptr<Shader> currentShader;
+        std::vector<unsigned char> cells;
 
       public:
-        static Game *getInstance();
-        void init(int rows, int cols, unsigned int seed, const Shader &shader);
+        Game(int rows, int cols, unsigned int seed);
+        ~Game();
+
         void loop();
 
-        GLFWwindow *window;
-        std::unique_ptr<Grid> grid;
-        std::unique_ptr<Kernel> game;
-        std::unique_ptr<Shader> shader;
-        std::vector<unsigned char> cells;
-        unsigned long delay;
+        void loadShader(const std::string &name, const std::string &vertPath,
+                        const std::string &fragPath);
+        void setShader(const std::string &name);
+        const std::vector<std::string> getShaders() const;
+
+        int delay;
+        std::array<float, 4> liveColor, deadColor;
     };
 
 } // namespace conway

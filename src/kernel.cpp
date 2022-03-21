@@ -88,7 +88,7 @@ void Kernel::create(const std::vector<cl::Device> &devices) {
     cl::Program::Sources obj;
     cl::Program program;
     std::string kernelSource(
-#include "shaders/conway.cl"
+#include "shaders/compute.cl"
     );
 
     program = cl::Program(context, kernelSource, false, &err);

@@ -6,11 +6,12 @@
  * @date        01/05/2022
  */
 
+#include <algorithm>
+#include <numeric>
 #include <cstddef>
 #include <cstdlib>
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 
 #include "grid.hpp"
 
@@ -18,7 +19,8 @@ using namespace conway;
 
 Grid::Grid(int rows, int cols) {
     // Generate GL buffers (1 vertex, 2 element)
-    glGenBuffers(3, buffers);
+    buffers.fill(0);
+    glGenBuffers(3, buffers.data());
 
     // We are storing the coordinates of the vertices only
     {
@@ -47,26 +49,29 @@ Grid::Grid(int rows, int cols) {
 
     cells.reserve(rows * cols);
     for (unsigned int i = 0; i < (6 * rows * cols); i += 6) {
-        cells.emplace_back(new Cell{
-            .indices = {i + 1, i + cols + 1, i, i + cols + 1, i + cols, i},
-        });
+        cells.emplace_back(std::array<unsigned int, 6>{
+            i + 1, i + cols + 1, i, i + cols + 1, i + cols, i});
     }
 }
 
 void Grid::updateCells(const std::vector<unsigned char> &cells) {
     std::vector<unsigned int> liveIndices, deadIndices;
     live = dead = 0;
+    {
+        std::vector<std::array<unsigned int, 6>> liveCells, deadCells;
+        auto cellIter = cells.cbegin();
+        std::partition_copy(
+            this->cells.cbegin(), this->cells.cend(), liveCells.begin(),
+            deadCells.begin(),
+            [&cellIter](const auto &val) { return *cellIter++; });
 
-    for (auto i = 0; i < cells.size(); i++) {
-        if (cells[i] == 255) {
-            for (const auto &index : this->cells[i].indices) {
-                liveIndices.push_back(index);
-            }
+        for (const auto &cell : liveCells) {
+            std::copy(cell.cbegin(), cell.cend(), liveIndices.end());
             live++;
-        } else {
-            for (const auto &index : this->cells[i].indices) {
-                deadIndices.push_back(index);
-            }
+        }
+
+        for (const auto &cell : deadCells) {
+            std::copy(cell.cbegin(), cell.cend(), deadIndices.end());
             dead++;
         }
     }

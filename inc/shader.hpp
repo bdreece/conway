@@ -5,8 +5,9 @@ namespace conway {
         unsigned int id;
 
       public:
-        Shader(const std::string &vertexShaderPath,
-               const std::string &fragmentShaderPath);
-        const unsigned int &get() const;
+        Shader(const std::string &vertexShader,
+               const std::string &fragmentShader);
+        const unsigned int getId() const;
+        const int getUniformLocation(const std::string &ident) const;
     };
 } // namespace conway
