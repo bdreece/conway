@@ -11,11 +11,13 @@
 #include <fstream>
 #include <memory>
 #include <sstream>
+#include <string>
 #include <thread>
 #include <GL/glew.h>
 #include <GL/gl.h>
 
 #include "game.hpp"
+#include "util.hpp"
 
 using namespace conway;
 
@@ -23,6 +25,11 @@ Game::Game(int rows, int cols, unsigned int seed) {
     // Initialize grid and OpenCL kernel
     this->grid = std::make_unique<Grid>(rows, cols);
     this->kernel = std::make_unique<Kernel>(rows, cols);
+
+    // Load default shaders
+    loadShader("default", "../inc/shaders/default.vert",
+               "../inc/shaders/default.frag");
+    setShader("default");
 
     // Initialize cells per random seed
     cells.reserve(rows * cols);
@@ -33,23 +40,18 @@ Game::Game(int rows, int cols, unsigned int seed) {
 
 void Game::loadShader(const std::string &name, const std::string &vertPath,
                       const std::string &fragPath) {
-    std::stringstream vss{}, fss{};
+    std::stringstream ss[2];
     std::ifstream vfs(vertPath), ffs(fragPath);
 
-    {
-        std::string buf;
-        while (vfs >> buf) {
-            vss << buf;
-        }
+    std::string line;
+    while (std::getline(vfs, line)) {
+        ss[0] << line << "\n";
     }
-    {
-        std::string buf;
-        while (ffs >> buf) {
-            fss << buf;
-        }
+    while (std::getline(ffs, line)) {
+        ss[1] << line << "\n";
     }
 
-    shaders[name] = std::make_shared<Shader>(vss.str(), fss.str());
+    shaders[name] = std::make_shared<Shader>(ss[0].str(), ss[1].str());
 }
 
 void Game::loop() {
@@ -58,23 +60,22 @@ void Game::loop() {
     unsigned int liveCells = grid->liveCells();
     unsigned int deadCells = grid->deadCells();
 
-    {
-        auto shader = currentShader.lock();
+    auto shader = currentShader.lock();
 
-        glUseProgram(shader->getId());
+    GL_CALL(glUseProgram(shader->getId()));
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, liveCells);
-        glUniform4f(shader->getUniformLocation("color"), liveColor[0],
-                    liveColor[1], liveColor[2], liveColor[3]);
-        glDrawElements(GL_TRIANGLES, grid->numLiveCells(), GL_UNSIGNED_INT,
-                       NULL);
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, liveCells));
+    GL_CALL(glUniform4f(shader->getUniformLocation("color"), liveColor[0],
+                        liveColor[1], liveColor[2], liveColor[3]));
+    GL_CALL(glDrawElements(GL_TRIANGLES, grid->numLiveCells() * 6,
+                           GL_UNSIGNED_INT, nullptr));
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, deadCells);
-        glUniform4f(shader->getUniformLocation("color"), deadColor[0],
-                    deadColor[1], deadColor[2], deadColor[3]);
-        glDrawElements(GL_TRIANGLES, grid->numDeadCells(), GL_UNSIGNED_INT,
-                       NULL);
-    }
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, deadCells));
+    GL_CALL(glUniform4f(shader->getUniformLocation("color"), deadColor[0],
+                        deadColor[1], deadColor[2], deadColor[3]));
+    GL_CALL(glDrawElements(GL_TRIANGLES, grid->numDeadCells() * 6,
+                           GL_UNSIGNED_INT, nullptr));
+    GL_CALL(glFlush());
 
     kernel->processCells(cells);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay));

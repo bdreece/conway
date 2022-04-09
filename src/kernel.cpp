@@ -23,19 +23,19 @@ Kernel::Kernel(const int rows, const int cols) : cols(cols), rows(rows) {
 
     // Get OpenCL platforms
     err = cl::Platform::get(&platforms);
-    ASSERT(err == CL_SUCCESS, err);
+    ASSERT(err == CL_SUCCESS, "cl::Platform::get");
 
     // Acquire context
     context = cl::Context(CL_DEVICE_TYPE_ALL, NULL, NULL, NULL, &err);
-    ASSERT(err == CL_SUCCESS, err);
+    ASSERT(err == CL_SUCCESS, "cl::Context");
 
     // Get context properties
     contextProperties = context.getInfo<CL_CONTEXT_PROPERTIES>();
-    ASSERT(contextProperties.size() != 0, 0);
+    ASSERT(contextProperties.size() != 0, "context.getInfo<...>");
 
     // Get context devices
     devices = context.getInfo<CL_CONTEXT_DEVICES>();
-    ASSERT(devices.size() != 0, 0);
+    ASSERT(devices.size() != 0, "devices.size()");
 
     // Select the GPU
     for (int i = 0; i < devices.size(); i++) {
@@ -45,7 +45,7 @@ Kernel::Kernel(const int rows, const int cols) : cols(cols), rows(rows) {
 
     // Prepare a command queue
     queue = cl::CommandQueue(context, devices[id], 0, &err);
-    ASSERT(err == CL_SUCCESS, err);
+    ASSERT(err == CL_SUCCESS, "cl::CommandQueue");
 
     // Prepare input and output buffers
     inputCells = cl::Buffer(context, CL_MEM_READ_ONLY,
@@ -92,9 +92,9 @@ void Kernel::create(const std::vector<cl::Device> &devices) {
     );
 
     program = cl::Program(context, kernelSource, false, &err);
-    ASSERT(err == CL_SUCCESS, err);
+    ASSERT(err == CL_SUCCESS, "cl::Program");
 
     program.build(devices);
     kernel = cl::Kernel(program, "process", &err);
-    ASSERT(err == CL_SUCCESS, err);
+    ASSERT(err == CL_SUCCESS, "cl::Kernel");
 }

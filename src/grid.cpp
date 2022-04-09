@@ -7,6 +7,7 @@
  */
 
 #include <algorithm>
+#include <iterator>
 #include <numeric>
 #include <cstddef>
 #include <cstdlib>
@@ -14,13 +15,14 @@
 #include <GL/glew.h>
 
 #include "grid.hpp"
+#include "util.hpp"
 
 using namespace conway;
 
 Grid::Grid(int rows, int cols) {
     // Generate GL buffers (1 vertex, 2 element)
     buffers.fill(0);
-    glGenBuffers(3, buffers.data());
+    GL_CALL(glGenBuffers(3, buffers.data()));
 
     // We are storing the coordinates of the vertices only
     {
@@ -41,10 +43,9 @@ Grid::Grid(int rows, int cols) {
         }
 
         // Put vertices in GL array buffer
-        glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-        glBufferData(GL_ARRAY_BUFFER, 2 * (rows + 1) * (cols + 1),
-                     vertices.data(), GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, buffers[0]));
+        GL_CALL(glBufferData(GL_ARRAY_BUFFER, 2 * (rows + 1) * (cols + 1),
+                             vertices.data(), GL_STATIC_DRAW));
     }
 
     cells.reserve(rows * cols);
@@ -56,39 +57,30 @@ Grid::Grid(int rows, int cols) {
 
 void Grid::updateCells(const std::vector<unsigned char> &cells) {
     std::vector<unsigned int> liveIndices{}, deadIndices{};
-    live = dead = 0;
-    {
-        std::vector<std::array<unsigned int, 6>> liveCells{}, deadCells{};
-        liveCells.reserve(
-            std::count_if(cells.cbegin(), cells.cend(),
-                          [](const auto &cell) { return cell > 0; }));
-        liveIndices.reserve(6 * liveCells.capacity());
-        deadCells.reserve(cells.size() - liveCells.capacity());
-        deadIndices.reserve(6 * deadCells.capacity());
+    std::vector<std::array<unsigned int, 6>> liveCells{}, deadCells{};
 
-        auto cellIter = cells.cbegin();
-        std::partition_copy(
-            this->cells.cbegin(), this->cells.cend(), liveCells.begin(),
-            deadCells.begin(),
-            [&cellIter](const auto &val) { return *cellIter++ > 0; });
+    auto cellIter = cells.cbegin();
+    std::partition_copy(
+        this->cells.cbegin(), this->cells.cend(), std::back_inserter(liveCells),
+        std::back_inserter(deadCells),
+        [&cellIter](const auto &val) { return *cellIter++ != 0; });
+    live = liveCells.size();
+    dead = deadCells.size();
 
-        for (const auto &cell : liveCells) {
-            std::copy(cell.cbegin(), cell.cend(), liveIndices.end());
-            live++;
-        }
-
-        for (const auto &cell : deadCells) {
-            std::copy(cell.cbegin(), cell.cend(), deadIndices.end());
-            dead++;
-        }
+    for (const auto &cell : liveCells) {
+        std::copy(cell.cbegin(), cell.cend(), std::back_inserter(liveIndices));
     }
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, liveIndices.size(),
-                 liveIndices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, deadIndices.size(),
-                 deadIndices.data(), GL_STATIC_DRAW);
+    for (const auto &cell : deadCells) {
+        std::copy(cell.cbegin(), cell.cend(), std::back_inserter(deadIndices));
+    }
+
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]));
+    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, liveIndices.size(),
+                         liveIndices.data(), GL_STATIC_DRAW));
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]));
+    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, deadIndices.size(),
+                         deadIndices.data(), GL_STATIC_DRAW));
 }
 
 const unsigned int &Grid::deadCells() const { return buffers[2]; }

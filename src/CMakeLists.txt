@@ -18,7 +18,7 @@ include_directories(${GLFW_INCLUDE_DIRS})
 
 set(IMGUI_DIR ../lib/imgui)
 
-add_library(conway_s grid.cpp game.cpp kernel.cpp shader.cpp)
+add_library(conway_s util.cpp grid.cpp game.cpp kernel.cpp shader.cpp)
 target_include_directories(conway_s PUBLIC ../inc)
 target_link_libraries(conway_s OpenCL::OpenCL OpenGL::OpenGL GLEW::GLEW glfw)
 

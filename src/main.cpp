@@ -97,11 +97,12 @@ int main(int argc, char **argv) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    conway::Game game(400, 300, 69420);
+    conway::Game game(5, 5, 69420);
+    game.liveColor = {255, 255, 255, 255};
+    game.deadColor = {0, 0, 0, 0};
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        glClearColor(0, 0, 0, 0);
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -142,7 +143,9 @@ int main(int argc, char **argv) {
 
         ImGui::Render();
 
-        // Something like this?
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         if (state == PLAY) {
             game.loop();
         }
