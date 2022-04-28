@@ -4,6 +4,8 @@
 
 An implementation of Conway's Game of Life, written in C++ with SDL2 and OpenCL
 
+![Conway's Game of Life](conway.gif)
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
