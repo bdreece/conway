@@ -1,6 +1,7 @@
 # conway
 
-![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/bdreece/conway?include_prereleases)
+[![GitHub](https://img.shields.io/github/license/bdreece/conway)](https://github.com/bdreece/conway/blob/main/LICENSE.md)
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/bdreece/conway?include_prereleases)](https://github.com/bdreece/conway/releases)
 
 An implementation of Conway's Game of Life, written in C++ with SDL2 and OpenCL
 
